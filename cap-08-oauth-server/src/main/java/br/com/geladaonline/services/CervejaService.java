@@ -33,124 +33,115 @@ import br.com.geladaonline.model.Estoque;
 import br.com.geladaonline.model.rest.Cervejas;
 
 @Path("/cervejas")
-@Consumes({ MediaType.TEXT_XML, MediaType.APPLICATION_XML,
-		MediaType.APPLICATION_JSON })
-@Produces({ MediaType.TEXT_XML, MediaType.APPLICATION_XML,
-		MediaType.APPLICATION_JSON })
-
+@Consumes({ MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+@Produces({ MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 public class CervejaService {
 
-	private static Estoque estoque = new Estoque();
+    private static Estoque estoque = new Estoque();
 
-	private static final int TAMANHO_PAGINA = 10;
-	
-	@Context
-	private SecurityContext context;
-	
-	
+    private static final int TAMANHO_PAGINA = 10;
 
-	@GET
-	@Path("{nome}")
-	
-	public Cerveja encontreCerveja(@PathParam("nome") String nomeDaCerveja) {
-		
-		Principal principal = context.getUserPrincipal();
-		String nomeDoUsuario = null;
-		
-		if (principal != null) {
-			nomeDoUsuario = principal.getName();
-		}
-		
-		System.out.println("Quem está acessando? " + nomeDoUsuario);
-		
-		Cerveja cerveja = estoque.recuperarCervejaPeloNome(nomeDaCerveja);
-		if (cerveja != null)
-			return cerveja;
+    @Context
+    private SecurityContext context;
 
-		throw new WebApplicationException(Status.NOT_FOUND);
+    @GET
+    @Path("{nome}")
+    public Cerveja encontreCerveja(@PathParam("nome") String nomeDaCerveja) {
 
-	}
+        Principal principal = context.getUserPrincipal();
+        String nomeDoUsuario = null;
 
-	@GET
-	public Cervejas listeTodasAsCervejas(@QueryParam("pagina") int pagina) {
-		
-		List<Cerveja> cervejas = estoque.listarCervejas(pagina, TAMANHO_PAGINA);
-		
-		return new Cervejas(cervejas);
-	}
+        if (principal != null) {
+            nomeDoUsuario = principal.getName();
+        }
 
-	@POST
-	public Response criarCerveja(Cerveja cerveja, @Context HttpServletRequest req) {
-		
-		try {
-			estoque.adicionarCerveja(cerveja);
-		} catch (CervejaJaExisteException e) {
-			throw new WebApplicationException(Status.CONFLICT);
-		}
+        System.out.println("Quem está acessando? " + nomeDoUsuario);
 
-		URI uri = UriBuilder.fromPath("cervejas/{nome}").build(
-				cerveja.getNome());
+        Cerveja cerveja = estoque.recuperarCervejaPeloNome(nomeDaCerveja);
+        if (cerveja != null) {
+            return cerveja;
+        }
 
-		return Response.created(uri).entity(cerveja).build();
-	}
+        throw new WebApplicationException(Status.NOT_FOUND);
 
-	@PUT
-	@Path("{nome}")
-	public void atualizarCerveja(@PathParam("nome") String nome, Cerveja cerveja) {
-		encontreCerveja(nome);
-		cerveja.setNome(nome);
-		estoque.atualizarCerveja(cerveja);
-	}
+    }
 
-	@DELETE
-	@Path("{nome}")
-	public void apagarCerveja(@PathParam("nome") String nome) {
-		estoque.apagarCerveja(nome);
-	}
+    @GET
+    public Cervejas listeTodasAsCervejas(@QueryParam("pagina") int pagina) {
 
-	@GET
-	@Path("{nome}")
-	@Produces("image/*")
-	public Response recuperaImagem(@PathParam("nome") String nomeDaCerveja)
-			throws IOException {
-		InputStream is = CervejaService.class.getResourceAsStream("/"
-				+ nomeDaCerveja + ".jpg");
+        List<Cerveja> cervejas = estoque.listarCervejas(pagina, TAMANHO_PAGINA);
 
-		if (is == null)
-			throw new WebApplicationException(Status.NOT_FOUND);
+        return new Cervejas(cervejas);
+    }
 
-		byte[] dados = new byte[is.available()];
-		is.read(dados);
-		is.close();
+    @POST
+    public Response criarCerveja(Cerveja cerveja, @Context HttpServletRequest req) {
 
-		return Response.ok(dados).type("image/jpg").build();
-	}
+        try {
+            estoque.adicionarCerveja(cerveja);
+        } catch (CervejaJaExisteException e) {
+            throw new WebApplicationException(Status.CONFLICT);
+        }
 
-	private static Map<String, String> EXTENSOES;
+        URI uri = UriBuilder.fromPath("cervejas/{nome}").build(cerveja.getNome());
 
-	static {
-		EXTENSOES = new HashMap<>();
-		EXTENSOES.put("image/jpg", ".jpg");
-	}
+        return Response.created(uri).entity(cerveja).build();
+    }
 
-	@POST
-	@Path("{nome}")
-	@Consumes("image/*")
-	public Response criaImagem(@PathParam("nome") String nomeDaImagem,
-			@Context HttpServletRequest req, byte[] dados) throws IOException,
-			InterruptedException {
+    @PUT
+    @Path("{nome}")
+    public void atualizarCerveja(@PathParam("nome") String nome, Cerveja cerveja) {
+        encontreCerveja(nome);
+        cerveja.setNome(nome);
+        estoque.atualizarCerveja(cerveja);
+    }
 
-		String userHome = System.getProperty("user.home");
-		String mimeType = req.getContentType();
-		FileOutputStream fos = new FileOutputStream(userHome
-				+ java.io.File.separator + nomeDaImagem
-				+ EXTENSOES.get(mimeType));
+    @DELETE
+    @Path("{nome}")
+    public void apagarCerveja(@PathParam("nome") String nome) {
+        estoque.apagarCerveja(nome);
+    }
 
-		fos.write(dados);
-		fos.flush();
-		fos.close();
+    @GET
+    @Path("{nome}")
+    @Produces("image/*")
+    public Response recuperaImagem(@PathParam("nome") String nomeDaCerveja) throws IOException {
+        InputStream is = CervejaService.class.getResourceAsStream("/" + nomeDaCerveja + ".jpg");
 
-		return Response.ok().build();
-	}
+        if (is == null) {
+            throw new WebApplicationException(Status.NOT_FOUND);
+        }
+
+        byte[] dados = new byte[is.available()];
+        is.read(dados);
+        is.close();
+
+        return Response.ok(dados).type("image/jpg").build();
+    }
+
+    private static Map<String, String> EXTENSOES;
+
+    static {
+        EXTENSOES = new HashMap<>();
+        EXTENSOES.put("image/jpg", ".jpg");
+    }
+
+    @POST
+    @Path("{nome}")
+    @Consumes("image/*")
+    public Response criaImagem(@PathParam("nome") String nomeDaImagem, @Context HttpServletRequest req, byte[] dados)
+            throws IOException, InterruptedException {
+
+        String userHome = System.getProperty("user.home");
+        String mimeType = req.getContentType();
+        FileOutputStream fos = new FileOutputStream(userHome + java.io.File.separator + nomeDaImagem
+                + EXTENSOES.get(mimeType));
+
+        fos.write(dados);
+        fos.flush();
+        fos.close();
+
+        return Response.ok().build();
+    }
 
 }
