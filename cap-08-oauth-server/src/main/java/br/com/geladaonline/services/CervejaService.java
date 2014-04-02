@@ -27,10 +27,15 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 
+import org.slf4j.Logger;
+
+import br.com.geladaonline.inject.Log;
 import br.com.geladaonline.model.Cerveja;
 import br.com.geladaonline.model.CervejaJaExisteException;
 import br.com.geladaonline.model.Estoque;
 import br.com.geladaonline.model.rest.Cervejas;
+
+import com.google.inject.Inject;
 
 @Path("/cervejas")
 @Consumes({ MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
@@ -40,6 +45,10 @@ public class CervejaService {
     private static Estoque estoque = new Estoque();
 
     private static final int TAMANHO_PAGINA = 10;
+
+    @Inject
+    @Log
+    private Logger log;
 
     @Context
     private SecurityContext context;
