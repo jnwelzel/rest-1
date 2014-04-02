@@ -21,7 +21,8 @@ public class ApplicationJAXRS extends Application {
     public Map<String, Object> getProperties() {
         Map<String, Object> properties = new HashMap<>();
         properties.put("jersey.config.server.provider.packages", "br.com.geladaonline.services");
-        properties.put(OAuth1ServerProperties.ENABLE_TOKEN_RESOURCES, Boolean.TRUE);
+        properties.put(OAuth1ServerProperties.IGNORE_PATH_PATTERN, "requestToken|authorize|accessToken");
+        properties.put(OAuth1ServerProperties.ENABLE_TOKEN_RESOURCES, true);
         return properties;
     }
 
